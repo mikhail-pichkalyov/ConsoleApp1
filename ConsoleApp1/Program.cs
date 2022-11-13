@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ConsoleApp4
 {
@@ -205,13 +206,13 @@ namespace ConsoleApp4
                     min = 0;
                 }
             }
-            if (N == 2)
+            if (graph.Count == 2)
             {
                 res.Add(ng);
             }
             else
             {
-                int minr = 0, minc = 0, maxc = 0; List<int> a1 = new(), b1 = new();//Для каждого нулевого элемента матрицы cij  рассчитаем коэффициент Гi,j, который равен сумме наименьшего элемента i строки (исключая элемент Сi,j=0) и наименьшего элемента j столбца. 
+                int minr = 0, minc = 0, maxc = 0; bool user=false, usec=false; List<int> a1 = new(), b1 = new();//Для каждого нулевого элемента матрицы cij  рассчитаем коэффициент Гi,j, который равен сумме наименьшего элемента i строки (исключая элемент Сi,j=0) и наименьшего элемента j столбца. 
                 for (int i = 0; i < N; i++)
                     for (int j = 0; j < N; j++)
                     {
@@ -220,36 +221,42 @@ namespace ConsoleApp4
                         {
                             for (int k = 0; k < N; k++)
                             {
-                                if ((graph[i][k] < minr || k==0) && graph[i][k] != -1&&k!=j)
+                                if ((graph[i][k] < minr || !user) && graph[i][k] != -1&&k!=j)
                                 {
                                     minr = graph[i][k];
                                     a = k;
+                                    user = true;
                                 }
-                                if ((graph[k][j] < minc || k==0) && graph[k][j] != -1&&k!=i)
+                                if ((graph[k][j] < minc || !usec) && graph[k][j] != -1&&k!=i)
                                 {
                                     minc = graph[k][j];
                                     b = k;
+                                    usec = true;
                                 }
                             }
                             if (minc + minr > maxc) //Из всех коэффициентов Гi, j выберем такой, который является максимальным Гk,l = max{ Гi,j}. Если таких элементов несколько, то проверяем их все
                             {
                                 maxc = minc + minr;
                                 a1.Clear(); b1.Clear();
-                                a1.Add(a); b1.Add(b);
+                                a1.Add(i); b1.Add(j);
                             }
                             else if (minc + minr == maxc)
                             {
-                                a1.Add(a); b1.Add(b);
+                                a1.Add(i); b1.Add(j);
                             }
-                            minc = 0; minr = 0;
+                            minc = 0; minr = 0; user = false;usec = false;
                         }
                     }
                 for (int i = 0; i < a1.Count; i++)//Удаляем k-тую строку и столбец l, поменяем на бесконечность значение элемента Сl,k
                 {
-                    if (N > 2)
-                    {
+                    
                         List<List<int>> graph1 = new();
-                        graph1 = graph;
+                        for(int j = 0; j < graph.Count; j++)
+                    {
+                        graph1.Add(new List<int>());
+                        for (int k = 0; k < graph.Count; k++)
+                            graph1[j].Add(graph[j][k]);
+                    }
                         graph1[b1[i]][a1[i]] = -1;
                         graph1.RemoveAt(a1[i]);
                         N--;
@@ -258,15 +265,14 @@ namespace ConsoleApp4
                             graph1[j].RemoveAt(b1[i]);
                         }
                         Litl(graph1, ng, N);
-                    }
                 }
                 a1.Clear();b1.Clear();
             }
         }
         public void Print()
         {
-            for (int i = 0; i < res.Count; i++)
-                Console.WriteLine(res[i]);
+            res.Sort();
+                Console.WriteLine(res[0]);
         }
         public void Alg()
         {
@@ -288,6 +294,7 @@ namespace ConsoleApp4
         static void Main(string[] args)
         {
             int N;
+
             /*StreamReader f = new("graphs.txt");//создали файл
             N = Convert.ToInt32(f.ReadLine());
             int[,] mas = new int[N, N];
@@ -303,49 +310,45 @@ namespace ConsoleApp4
             
         }
             f.Close();*/
+
             N=Convert.ToInt32(Console.ReadLine());
-            int[,] mas = new int[N, N];
-            Random rnd = new();
-            for (int i = 0; i < N; i++)
+            for (int rnds = 0; rnds < 10000; rnds++)
             {
-                mas[i, i] = 0;
-                for (int j = i+1; j < N; j++)
+                int[,] mas = new int[N, N];
+                Random rnd = new();
+                for (int i = 0; i < N; i++)
                 {
-                    mas[i, j] = rnd.Next(1, 10);
-                    mas[j, i] = mas[i, j];
-                    
+                    mas[i, i] = 0;
+                    for (int j = i + 1; j < N; j++)
+                    {
+                        mas[i, j] = rnd.Next(1, 1000);
+                        mas[j, i] = mas[i, j];
+
+                    }
                 }
-            }
-            /*for(int i = 0; i < N; i++)
-            { 
-                for(int k = 0; k < N; k++)
+                /*for(int i = 0; i < N; i++)
+                { 
+                    for(int k = 0; k < N; k++)
+                    {
+                        Console.Write(mas[i, k]);
+                        Console.Write(' ');
+                    }
+                    Console.WriteLine();
+                }*/
+                //перебор 
+                List<bool> guse = new();
+                for (int i = 0; i < N-1; i++)
                 {
-                    Console.Write(mas[i, k]);
-                    Console.Write(' ');
+                    guse.Add(false);
                 }
-                Console.WriteLine();
-            }*/
-            //перебор 
-            /*List<bool> guse = new();
-            for (int i = 0; i < N-1; i++)
-            {
-                guse.Add(false);
+                Perebor test = new(N, mas);
+                test.Alg(guse,0,0,0);
+                test.Print();
+                //12 максимум
+                /*Little test = new(N, mas);
+                test.Alg();
+                test.Print();*/
             }
-            Perebor test = new(N, mas);
-            test.Alg(guse,0,0,0);
-            test.Print();
-            //12 максимум*/
-            //жадный
-            //2000 максимум
-            /*List<List<int>> graph2=new();
-            for (int i = 0; i < N; i++)
-                graph2.Add(new List<int>());
-            Greedy test = new(N, mas);
-            test.Alg(graph2);
-            test.Print();*/
-            Little test = new(N, mas);
-            test.Alg();
-            test.Print();
         }
     }
 }
