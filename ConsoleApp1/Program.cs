@@ -26,7 +26,7 @@ namespace ConsoleApp4
 
         }
 
-
+        int idk = 0;
         List<int> cycles = new();//лист с сохранением того, использовалась ли эта вершина
         public void Alg(List<bool> guse,int sum,int a,int b)
         {
@@ -36,7 +36,13 @@ namespace ConsoleApp4
             {
                 if (!guse[i])//если вершина не использована
                 {
-                        if (!guse.Contains(true)) b = i;//если это первая вершина в графе
+                        if (!guse.Contains(true))
+                        {
+                            sum += idk;
+                            b = i;//если это первая вершина в графе
+                            sum -= Mas[a, i];
+                            idk= Mas[a, i];
+                        }
                     guse[i] = true;//отмечаем вершину использованной
                     Alg(guse,sum+ Mas[a, i], i,b);//запускаем снова
                         guse[i] = false;//размечаем вершину обратно
@@ -48,10 +54,10 @@ namespace ConsoleApp4
                 cycles.Add(sum + Mas[a, N-1] + Mas[N-1,b]);//добавляем длину цикла
             }
         }
-        public void Print()
+        public int Print()
         {
             cycles.Sort();//сортируем цикл
-            Console.WriteLine(cycles[0]);//выводим самое маленькое
+            return(cycles[0]);//выводим самое маленькое
             cycles.Clear();//очищаем
         }
     }
@@ -142,9 +148,9 @@ namespace ConsoleApp4
                 }
             }
         }
-        public void Print()
+        public int Print()
         {
-            Console.WriteLine(sum);
+            return(sum);
         }
     }
     class Little : Graph//алгоритм Литтла
@@ -157,15 +163,16 @@ namespace ConsoleApp4
         List<int> res=new();
         public void Litl(List<List<int>> graph, int ng,int N)
         {
-            int min = 0,a=0,b=0;
+            int min = 0, a = 0; bool b = false;
             for (int i = 0; i < N; i++)//вычитаем минимальный элемент из каждой строки
             {
                 for(int j = 0; j < N; j++)
                     if(graph[i][j]!=-1)
                     {
-                        if (min == 0  || graph[i][j] <= min)
+                        if (graph[i][j] < min||!b)
                         {
                             min = graph[i][j];
+                            b = true;
                             //a = i; b = j;
                         }
                             
@@ -176,18 +183,18 @@ namespace ConsoleApp4
                         graph[i][j] -= min;
                     }
                 ng += min;
-                min = 0;
+                min = 0; b = false;
             }
-            
             for (int j = 0; j < N; j++)//и из каждого столбца, где нет нуля
             {
                 for (int i = 0; i < N; i++)
                 {
                     if (graph[i][j] != -1)
                     {
-                        if ((i==0)||(j==0&&i==1) || graph[i][j] <= min)
+                        if (!b|| graph[i][j] <= min)
                         {
                             min = graph[i][j];
+                            b = true;
                             //a = i; b = j;
                         }
 
@@ -205,6 +212,7 @@ namespace ConsoleApp4
                     ng += min;
                     min = 0;
                 }
+                b=false;
             }
             if (graph.Count == 2)
             {
@@ -230,7 +238,6 @@ namespace ConsoleApp4
                                 if ((graph[k][j] < minc || !usec) && graph[k][j] != -1&&k!=i)
                                 {
                                     minc = graph[k][j];
-                                    b = k;
                                     usec = true;
                                 }
                             }
@@ -257,22 +264,45 @@ namespace ConsoleApp4
                         for (int k = 0; k < graph.Count; k++)
                             graph1[j].Add(graph[j][k]);
                     }
-                        graph1[b1[i]][a1[i]] = -1;
                         graph1.RemoveAt(a1[i]);
                         N--;
+                        int notr=0;
                         for (int j = 0; j < N; j++)
                         {
                             graph1[j].RemoveAt(b1[i]);
+                        if (!graph1[j].Contains(-1)) 
+                            notr = j;
                         }
+                    int notc = 0,l=0;
+                    bool notc1 = true;
+                        while(notc1 && l < N)
+                    {
+                        bool yesc = true;
+                        int k = 0;
+                        while (yesc&&k<N)
+                        {
+                            if (graph1[k][l] == -1)
+                                yesc = false;
+                            k++;
+                        }
+                        if(yesc)
+                        {
+                            notc = l;
+                            notc1 = false;
+                        }
+                        l++;
+                    }
+                    graph1[notr][notc] = -1;
                         Litl(graph1, ng, N);
+                    N++;
                 }
                 a1.Clear();b1.Clear();
             }
         }
-        public void Print()
+        public int Print()
         {
             res.Sort();
-                Console.WriteLine(res[0]);
+                return (res[0]);
         }
         public void Alg()
         {
@@ -301,7 +331,7 @@ namespace ConsoleApp4
             for (int i = 0; i < N; i++)
             { 
                 string s=f.ReadLine();
-                string[] strings = s.Split('\t');
+                string[] strings = s.Split(' ');
                 for (int j = 0; j < N; j++)
                 {
 
@@ -310,9 +340,9 @@ namespace ConsoleApp4
             
         }
             f.Close();*/
-
+            double tocht=0, a,b;
             N=Convert.ToInt32(Console.ReadLine());
-            for (int rnds = 0; rnds < 10000; rnds++)
+            for (int rnds = 0; rnds < 100; rnds++)
             {
                 int[,] mas = new int[N, N];
                 Random rnd = new();
@@ -321,11 +351,11 @@ namespace ConsoleApp4
                     mas[i, i] = 0;
                     for (int j = i + 1; j < N; j++)
                     {
-                        mas[i, j] = rnd.Next(1, 1000);
+                        mas[i, j] = rnd.Next(1, 10);
                         mas[j, i] = mas[i, j];
 
                     }
-                }
+                } 
                 /*for(int i = 0; i < N; i++)
                 { 
                     for(int k = 0; k < N; k++)
@@ -335,7 +365,7 @@ namespace ConsoleApp4
                     }
                     Console.WriteLine();
                 }*/
-                //перебор 
+                //перебор */
                 List<bool> guse = new();
                 for (int i = 0; i < N-1; i++)
                 {
@@ -343,12 +373,30 @@ namespace ConsoleApp4
                 }
                 Perebor test = new(N, mas);
                 test.Alg(guse,0,0,0);
-                test.Print();
+            a=test.Print();
+
                 //12 максимум
-                /*Little test = new(N, mas);
-                test.Alg();
-                test.Print();*/
+                Little test1 = new(N, mas);
+                test1.Alg();
+                b=test1.Print();
+                if (a == b) tocht++;
+                else
+                {
+                    for (int i = 0; i < N; i++)
+                    {
+                        for (int k = 0; k < N; k++)
+                        {
+                            Console.Write(mas[i, k]);
+                            Console.Write(' ');
+                        }
+                        Console.WriteLine();
+                    }
+                    Console.WriteLine(a);
+                    Console.WriteLine(b);
+                }
             }
+            Console.WriteLine(tocht / 10);//это для теста
+
         }
     }
 }
